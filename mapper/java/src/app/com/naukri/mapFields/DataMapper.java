@@ -5,8 +5,6 @@ import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.codehaus.jackson.JsonGenerationException;
-import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -17,15 +15,19 @@ import java.lang.reflect.Method;
 @SuppressWarnings({ "serial", "unchecked" })
 public class DataMapper {
 	
-	public void readData(JSONObject configJSON, String mappedFileContent) throws JsonGenerationException, JsonMappingException, IOException {
+	public void readData(JSONObject configJSON, String mappedFileContent) throws IOException {
 		JSONObject mappedJson = new JSONObject();
 		JSONObject questionaireJson = new JSONObject();
 		
-		JSONArray usefulJson = (JSONArray)(configJSON.get("fields"));
-		ArrayList<JSONObject> results = findDataForFields(usefulJson, mappedFileContent);
-		
-		mappedJson = results.get(0);
-		questionaireJson.put("questionaireData", results.get(1));
+		try {
+			JSONArray usefulJson = (JSONArray)(configJSON.get("fields"));
+			ArrayList<JSONObject> results = findDataForFields(usefulJson, mappedFileContent);
+			mappedJson = results.get(0);
+			questionaireJson.put("questionaireData", results.get(1));
+		} catch (Exception e) {
+			System.out.println("\"fields\" attribute not present in json. Exiting!!");
+			System.exit(0);
+		}
 		
 		ObjectMapper mapper = new ObjectMapper();
 		System.out.println(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(mappedJson));
