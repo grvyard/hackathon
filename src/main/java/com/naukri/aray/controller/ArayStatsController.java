@@ -1,5 +1,6 @@
 package com.naukri.aray.controller;
 
+import java.sql.SQLException;
 import java.text.ParseException;
 import java.util.List;
 
@@ -21,7 +22,7 @@ public class ArayStatsController {
 	private ArayStatsService arayStatsService;
 	
 	@RequestMapping(value = "/{date}", method=RequestMethod.GET)
-	public @ResponseBody List<ArayStatistic> getStatsForDate(@PathVariable("date") String date) throws ParseException {
+	public @ResponseBody List<ArayStatistic> getStatsForDate(@PathVariable("date") String date) throws ParseException, ClassNotFoundException, SQLException {
 		return arayStatsService.getStatsForDate(date);
 	}
 	
@@ -31,13 +32,13 @@ public class ArayStatsController {
 	}
 	
 	@RequestMapping(value="/sendEmail/{date}", method=RequestMethod.GET)
-	public @ResponseBody void sendEmail(@PathVariable("date") String date) throws ParseException {
+	public @ResponseBody void sendEmail(@PathVariable("date") String date) throws ParseException, ClassNotFoundException, SQLException {
 		arayStatsService.sendEmail(date);
 		return;
 	}
 	
-	@RequestMapping(value="/{date}", method=RequestMethod.POST)
-	public @ResponseBody void insertData(@PathVariable("date") String date) throws ParseException {
-		arayStatsService.insert(date);
-	}
+//	@RequestMapping(value="/{date}", method=RequestMethod.POST)
+//	public @ResponseBody void insertData(@PathVariable("date") String date) throws ParseException, ClassNotFoundException, SQLException {
+//		arayStatsService.insert(date);
+//	}
 }

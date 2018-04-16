@@ -50,7 +50,7 @@ public class ScheduledTasks {
     	c.add(Calendar.DATE, -1);  // number of days to add
     	date = c.getTime();
     	formattedDateInString = dateFormat.format(date);
-    	arayStatsService.sendEmail(formattedDateInString);
+    	//arayStatsService.sendEmail(formattedDateInString);
     	
         //data fetching from oms-apply status
     	
@@ -67,7 +67,7 @@ public class ScheduledTasks {
     	c.add(Calendar.DATE, -1);  // number of days to add
     	date = c.getTime();
     	formattedDateInString = dateFormat.format(date);
-    	arayStatsService.getStatsForDate(formattedDateInString);
+    	//arayStatsService.getStatsForDate(formattedDateInString);
     	
         //data fetching from oms-apply status
     	
