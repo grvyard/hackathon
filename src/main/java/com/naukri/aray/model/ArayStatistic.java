@@ -11,11 +11,18 @@ import javax.persistence.Table;
 
 public class ArayStatistic {
 
+	private Integer id;
 	private String date;
 	private Integer numOfCompaniesDoneToday;
 	private Integer totalNumOfCompaniesTillNow;
 	private String countryType;
 	private Map<String, Integer> mapForApplyStatus;
+	public Integer getId() {
+		return id;
+	}
+	public void setId(Integer id) {
+		this.id = id;
+	}
 	public String getDate() {
 		return date;
 	}

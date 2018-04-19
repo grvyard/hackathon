@@ -57,7 +57,8 @@ public class ArayStatsServiceImpl implements ArayStatsService {
 	
 	@Override
 	public List<ArayStatistic> getStats() {
-		return arayStatisticRepository.findAll();
+		List<ArayStatistic> a = new ArrayList<>();
+		return a;
 	}
 	
 	@Override
@@ -98,11 +99,11 @@ public class ArayStatsServiceImpl implements ArayStatsService {
 		arayStatsforNI.setTotalNumOfCompaniesTillNow(companiesDoneTillNowNI);
 		
 		ArayStatistic arayStatsforNG = new ArayStatistic();
-		arayStatsforNI.setCountryType(Constants.NG);
-		arayStatsforNI.setDate(date);
-		arayStatsforNI.setMapForApplyStatus(mapForNG);
-		arayStatsforNI.setNumOfCompaniesDoneToday(companiesDoneTodayNG);
-		arayStatsforNI.setTotalNumOfCompaniesTillNow(companiesDoneTillNowNG);
+		arayStatsforNG.setCountryType(Constants.NG);
+		arayStatsforNG.setDate(date);
+		arayStatsforNG.setMapForApplyStatus(mapForNG);
+		arayStatsforNG.setNumOfCompaniesDoneToday(companiesDoneTodayNG);
+		arayStatsforNG.setTotalNumOfCompaniesTillNow(companiesDoneTillNowNG);
 		
 		
 		List<ArayStatistic> arayStatsList = new ArrayList<ArayStatistic>();
@@ -123,143 +124,70 @@ public class ArayStatsServiceImpl implements ArayStatsService {
 		Date dateFormat = dateFormatt.parse(date); 
         
 		Connection conn = getDatabaseConnectionARAY();
-        
-		Set<String> setNI = arayStatsforNI.getMapForApplyStatus().keySet();
-		List<String> listNI = new ArrayList<>(setNI);
-		Map<String, List<ErrorData>> top5FailuresNI = arayLogRepository.findTop5ErrosByType(conn, date, Constants.NI, listNI);
+        Set<String> s = arayStatsforNI.getMapForApplyStatus().keySet();
+		//NI - arayLog
 		
-		Set<String> setNG = arayStatsforNG.getMapForApplyStatus().keySet();
-		List<String> listNG = new ArrayList<>(setNG);
-		Map<String, List<ErrorData>> top5FailuresNG = arayLogRepository.findTop5ErrosByType(conn, date, Constants.NG, listNG);
+		Map<String, List<ErrorData>> top5ErrorsOfAllCategoriesNI = arayLogRepository.findTop5ErrosByType(conn, date, Constants.NI, s);
+		Map<String, List<ErrorData>> top5ErrorsOfAllCategoriesNG = arayLogRepository.findTop5ErrosByType(conn, date, Constants.NG, s);
+		conn.close();
 		
-		
-//        Object[] top5expiredJobsNI = arayLogRepository.findTop5ByExpiredJobsNI(0, dateFormat, Constants.JOB_EXPIRED);
-//        Object[] top5InternalServerErrorsNI = arayLogRepository.findTop5ByInternalServerErrorNI(0, dateFormat, Constants.INTERNAL_SERVER_ERROR);
-//        
-//        //NG - arayLog
-//        Object[] top5FailuresNG = arayLogRepository.findTop5ByFailuresNG(0, dateFormat, Constants.STEP_FAILED);
-//        Object[] top5expiredJobsNG = arayLogRepository.findTop5ByExpiredJobsNG(0, dateFormat, Constants.JOB_EXPIRED);
-//        Object[] top5InternalServerErrorsNG = arayLogRepository.findTop5ByInternalServerErrorNG(0, dateFormat, Constants.INTERNAL_SERVER_ERROR);
-//        
-        //from ,to and subject
+		//from ,to and subject
         String from = "aray@localhost";
         String to = environment.getProperty("sendTo");
         String subject = "Aray Service Stats for " + date;
         
         //email template
         EmailTemplate template = new EmailTemplate("hello-world.html");
-        String templateText = "<html><body><h1>Aray Service Stats - NI</h1><table style=\"width:100%\"><tr><td><h4>totalUniqueHitsNI</h4></td><td>{{totalUniqueHitsNI}}</td></tr><tr><td><h4>successhits</h4></td><td>{{successhitsNI}}</td></tr><tr><td><h4>failureHits</h4></td><td>{{failureHitsNI}}</td></tr><tr>	<td><h4>expiredJobs</h4></td><td>{{expiredJobsNI}}</td></tr><tr><td><h4>InternalServerError</h4></td><td>{{internalServerErrorNI}}</td></tr><tr><td><h4>companiesDoneTillNow</h4></td><td>{{companiesDoneTillNowNI}}</td></tr><tr><td><h4>companiesDoneToday</h4></td><td>{{companiesDoneTodayNI}}</td>";
-//        for (String member : numOfCompaniesByMember.keySet()) {
-//			templateText.concat("<td>" + member + ": " + numOfCompaniesByMember.get(member) + "</td>");
-//		}
-//        templateText = templateText.concat("</tr></table>");
-//        
-        //adding message for top 5 stats
-        templateText = templateText.concat("<h3> Top 5 Failure </h3>");
-        templateText = templateText.concat("<table style=\"width:100%\"><tr><td>CompanyId</td><td>count</td><td>failedStep</td></tr>");
-//        for (Object arayLog : top5FailuresNI) {
-//        	if (arayLog instanceof Object[]) {
-//        	      Object[] row = (Object[]) arayLog;
-//        	      templateText = templateText.concat("<tr><td>" + row[0] +   "</td><td>" + row[1] + "</td><td>" + row[2] +"</td></tr>");
-//        	}
-//        }
+        
+        //setting data for NI
+        String templateText = "<html><body><h1>Aray Service Stats - NI</h1><table style=\"width:100%\">";
+        for (String status : s) {
+			templateText = templateText.concat("<tr><td><h4>" + status + "</h4></td><td>" + arayStatsforNI.getMapForApplyStatus().get(status) + "</td></tr>");
+		}
         templateText = templateText.concat("</table>");
         
-        templateText = templateText.concat("<h3> Top 5 Expired </h3>");
-        templateText = templateText.concat("<table style=\"width:100%\"><tr><td>CompanyId</td><td>count</td></tr>");
-//        for (Object arayLog : top5expiredJobsNI) {
-//        	if (arayLog instanceof Object[]) {
-//        	      Object[] row = (Object[]) arayLog;
-//        	      templateText = templateText.concat("<tr><td>" + row[0] +   "</td><td>" + row[1] +"</td></tr>");
-//        	}
-//        }
+        for (String status : top5ErrorsOfAllCategoriesNI.keySet()) {
+        	templateText = templateText.concat("<h3> Top " + status + "</h3>");
+        	templateText = templateText.concat("<table style=\"width:100%\"><tr><td>CompanyId</td><td>count</td><td>Step</td></tr>");
+        	for (ErrorData errorData : top5ErrorsOfAllCategoriesNI.get(status)) {
+				templateText = templateText.concat("<tr><td>" + errorData.getCompanyId() +   "</td><td>" + errorData.getCnt() + "</td><td>" + errorData.getFailedStep() +"</td></tr>");
+			}
+        	templateText = templateText.concat("</table>");
+		}
+        
+        //setting data for NG
+        templateText = templateText.concat("<html><body><h1>Aray Service Stats - NG</h1><table style=\"width:100%\">");
+        for (String status : s) {
+			templateText = templateText.concat("<tr><td><h4>" + status + "</h4></td><td>" + arayStatsforNG.getMapForApplyStatus().get(status) + "</td></tr>");
+		}
         templateText = templateText.concat("</table>");
         
-        templateText = templateText.concat("<h3> Top 5 Internal Server Error </h3>");
-        templateText = templateText.concat("<table style=\"width:100%\"><tr><td>CompanyId</td><td>count</td></tr>");
-//        for (Object arayLog : top5InternalServerErrorsNI) {
-//        	if (arayLog instanceof Object[]) {
-//        	      Object[] row = (Object[]) arayLog;
-//        	      templateText = templateText.concat("<tr><td>" + row[0] +   "</td><td>" + row[1] + "</td></tr>");
-//        	}
-//        }
-        templateText = templateText.concat("</table>");
-        
-        
-        //adding data for NG
-        templateText = templateText.concat("<h1>Aray Service Stats - NG</h1><table style=\\\"width:100%\\\"><tr><td><h4>totalUniqueHitsNG</h4></td><td>{{totalUniqueHitsNG}}</td></tr><tr><td><h4>successhits</h4></td><td>{{successhitsNG}}</td></tr><tr><td><h4>failureHits</h4></td><td>{{failureHitsNG}}</td></tr><tr><td><h4>expiredJobs</h4></td><td>{{expiredJobsNG}}</td></tr><tr><td><h4>InternalServerError</h4></td><td>{{internalServerErrorNG}}</td></tr><tr><td><h4>companiesDoneTillNow</h4></td><td>{{companiesDoneTillNowNG}}</td></tr><tr><td><h4>companiesDoneToday</h4></td><td>{{companiesDoneTodayNG}}</td>");
-        templateText = templateText.concat("</tr></table>");
-      
-        //adding message for top 5 stats
-        templateText = templateText.concat("<h3> Top 5 Failure </h3>");
-        templateText = templateText.concat("<table style=\"width:100%\"><tr><td>CompanyId</td><td>count</td><td>failedStep</td></tr>");
-//        for (Object arayLog : top5FailuresNG) {
-//        	if (arayLog instanceof Object[]) {
-//        	      Object[] row = (Object[]) arayLog;
-//        	      templateText = templateText.concat("<tr><td>" + row[0] +   "</td><td>" + row[1] + "</td><td>" + row[2] +"</td></tr>");
-//        	}
-//        }
-        templateText = templateText.concat("</table>");
-        
-        templateText = templateText.concat("<h3> Top 5 Expired </h3>");
-        templateText = templateText.concat("<table style=\"width:100%\"><tr><td>CompanyId</td><td>count</td></tr>");
-//        for (Object arayLog : top5expiredJobsNG) {
-//        	if (arayLog instanceof Object[]) {
-//        	      Object[] row = (Object[]) arayLog;
-//        	      templateText = templateText.concat("<tr><td>" + row[0] +   "</td><td>" + row[1] +"</td></tr>");
-//        	}
-//        }
-        templateText = templateText.concat("</table>");
-        
-        templateText = templateText.concat("<h3> Top 5 Internal Server Error </h3>");
-        templateText = templateText.concat("<table style=\"width:100%\"><tr><td>CompanyId</td><td>count</td></tr>");
-//        for (Object arayLog : top5InternalServerErrorsNG) {
-//        	if (arayLog instanceof Object[]) {
-//        	      Object[] row = (Object[]) arayLog;
-//        	      templateText = templateText.concat("<tr><td>" + row[0] +   "</td><td>" + row[1] + "</td></tr>");
-//        	}
-//        }
-        templateText = templateText.concat("</table>");
-        
-        //end of html body
+        for (String status : top5ErrorsOfAllCategoriesNG.keySet()) {
+        	templateText = templateText.concat("<h3> Top " + status + "</h3>");
+        	templateText = templateText.concat("<table style=\"width:100%\"><tr><td>CompanyId</td><td>count</td><td>Step</td></tr>");
+        	for (ErrorData errorData : top5ErrorsOfAllCategoriesNG.get(status)) {
+				templateText = templateText.concat("<tr><td>" + errorData.getCompanyId() +   "</td><td>" + errorData.getCnt() + "</td><td>" + errorData.getFailedStep() +"</td></tr>");
+			}
+        	templateText = templateText.concat("</table>");
+		}
         templateText = templateText.concat("</body></html>");
         
-        //setting data in template
-        template.setTemplate(templateText);
-        Map<String, Integer> replacements = new HashMap<>();
-        replacements.put("companiesDoneTodayNI", arayStatsforNI.getNumOfCompaniesDoneToday());
-        replacements.put("companiesDoneTillNowNI", arayStatsforNI.getTotalNumOfCompaniesTillNow());
-//        replacements.put("totalUniqueHitsNI", arayStatsforNI.getRecievedApplies());
-//        replacements.put("successhitsNI", arayStatsforNI.getSuccessfullApplies());
-//        replacements.put("failureHitsNI", arayStatsforNI.getFailureApplies());
-//        replacements.put("expiredJobsNI", arayStatsforNI.getJobexpired());
-//        replacements.put("internalServerErrorNI", arayStatsforNI.getInternalServerError());
-         
-        replacements.put("companiesDoneTodayNG", arayStatsforNG.getNumOfCompaniesDoneToday());
-        replacements.put("companiesDoneTillNowNG", arayStatsforNG.getTotalNumOfCompaniesTillNow());
-//        replacements.put("totalUniqueHitsNG", arayStatsforNG.getRecievedApplies());
-//        replacements.put("successhitsNG", arayStatsforNG.getSuccessfullApplies());
-//        replacements.put("failureHitsNG", arayStatsforNG.getFailureApplies());
-//        replacements.put("expiredJobsNG", arayStatsforNG.getJobexpired());
-//        replacements.put("internalServerErrorNG", arayStatsforNG.getInternalServerError());
-        
-        String message = template.getTemplate(replacements);
-        Email email = new Email(from, to, subject, message);
+        Email email = new Email(from, to, subject, templateText);
         email.setHtml(true);
         emailService.send(email);
 	}
 	
 	public Connection getDatabaseConnectionARAY() throws ClassNotFoundException, SQLException {
 		Class.forName("com.mysql.cj.jdbc.Driver");
-		//Connection conn = DriverManager.getConnection("jdbc:mysql://172.10.115.91:3306/ARAY", "aray", "Km7Iv80l");
-		Connection conn = DriverManager.getConnection("jdbc:mysql://127.0.0.1:3306/ARAY", "root", "Km7Iv80l");
+		Connection conn = DriverManager.getConnection("jdbc:mysql://172.10.115.91:3306/ARAY", "aray", "Km7Iv80l");
+		//Connection conn = DriverManager.getConnection("jdbc:mysql://127.0.0.1:3306/ARAY", "root", "Km7Iv80l");
 		return conn;
 	}
 	
 	public Connection getDatabaseConnectionWebJobs() throws ClassNotFoundException, SQLException {
 		Class.forName("com.mysql.cj.jdbc.Driver");
-		//Connection conn = DriverManager.getConnection("jdbc:mysql://172.10.24.101:3307/webjobs", "arayuser", "@pp1yus3r");
-		Connection conn = DriverManager.getConnection("jdbc:mysql://127.0.0.1:3306/ARAY", "root", "Km7Iv80l");
+		Connection conn = DriverManager.getConnection("jdbc:mysql://172.10.24.101:3307/webjobs", "arayuser", "@pp1yus3r");
+		//Connection conn = DriverManager.getConnection("jdbc:mysql://127.0.0.1:3306/ARAY", "root", "Km7Iv80l");
 		return conn;
 	}
 }

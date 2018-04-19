@@ -1,13 +1,11 @@
 package com.naukri.aray.repository;
 
-import java.io.Serializable;
-import java.util.List;
+import org.springframework.stereotype.Component;
 
-import org.springframework.data.jpa.repository.JpaRepository;
+@Component
+public class  ArayStatisticRepository {
 
-import com.naukri.aray.model.ArayStatistic;
-
-public interface ArayStatisticRepository extends JpaRepository<ArayStatistic, Serializable>{
-
-	public List<ArayStatistic> findOneByDate(String date);
+	public void findOneByDate(String date) {
+		
+	}
 }
