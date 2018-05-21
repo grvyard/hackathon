@@ -1,5 +1,6 @@
 package com.naukri.aray.scheduler;
 
+import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -40,7 +41,7 @@ public class ScheduledTasks {
     private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 
     @Scheduled(cron = "0 0 11 * * *")
-    public void reportCurrentTime() throws ParseException {
+    public void reportCurrentTime() throws ParseException, ClassNotFoundException, SQLException {
     	
     	Date date = new Date();
     	String formattedDateInString = dateFormat.format(date);
@@ -50,27 +51,10 @@ public class ScheduledTasks {
     	c.add(Calendar.DATE, -1);  // number of days to add
     	date = c.getTime();
     	formattedDateInString = dateFormat.format(date);
-    	//arayStatsService.sendEmail(formattedDateInString);
+    	arayStatsService.sendEmail(formattedDateInString);
     	
         //data fetching from oms-apply status
     	
     }
-    
-    @Scheduled(cron = "0 0 0/1 * * *")
-    public void getCurrentStats() throws ParseException {
-    	
-    	Date date = new Date();
-    	String formattedDateInString = dateFormat.format(date);
-    	
-    	Calendar c = Calendar.getInstance();
-    	c.setTime(dateFormat.parse(formattedDateInString));
-    	c.add(Calendar.DATE, -1);  // number of days to add
-    	date = c.getTime();
-    	formattedDateInString = dateFormat.format(date);
-    	//arayStatsService.getStatsForDate(formattedDateInString);
-    	
-        //data fetching from oms-apply status
-    	
-     }
 }
 

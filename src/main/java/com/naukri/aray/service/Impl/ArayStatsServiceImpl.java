@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Logger;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
@@ -44,6 +45,8 @@ public class ArayStatsServiceImpl implements ArayStatsService {
 	
 	@Autowired
 	private Environment environment;
+	
+	Logger logger = Logger.getLogger(ArayStatsServiceImpl.class.getName());
 
 	@Override
 	public List<ArayStatistic> getStatsForDate(String date) throws ParseException, ClassNotFoundException, SQLException {
@@ -142,11 +145,18 @@ public class ArayStatsServiceImpl implements ArayStatsService {
         //setting data for NI
         String templateText = "<html><body><h1>Aray Service Stats - NI</h1><table style=\"width:100%\">";
         for (String status : s) {
-			templateText = templateText.concat("<tr><td><h4>" + status + "</h4></td><td>" + arayStatsforNI.getMapForApplyStatus().get(status) + "</td></tr>");
+        	if (arayStatsforNI.getMapForApplyStatus().get(status) != null) {
+        		templateText = templateText.concat("<tr><td><h4>" + status + "</h4></td><td>" + arayStatsforNI.getMapForApplyStatus().get(status) + "</td></tr>");
+        	}
 		}
+        templateText = templateText.concat("<tr><td><h4>companiesDoneTillNow</h4></td><td>" + arayStatsforNI.getTotalNumOfCompaniesTillNow() + "</td></tr>");
+        templateText = templateText.concat("<tr><td><h4>companiesDoneToday</h4></td><td>" + arayStatsforNI.getNumOfCompaniesDoneToday() + "</td></tr>");
         templateText = templateText.concat("</table>");
         
         for (String status : top5ErrorsOfAllCategoriesNI.keySet()) {
+        	if (top5ErrorsOfAllCategoriesNI.get(status) == null) {
+        		continue;
+        	}
         	templateText = templateText.concat("<h3> Top " + status + "</h3>");
         	templateText = templateText.concat("<table style=\"width:100%\"><tr><td>CompanyId</td><td>count</td><td>Step</td></tr>");
         	for (ErrorData errorData : top5ErrorsOfAllCategoriesNI.get(status)) {
@@ -158,11 +168,18 @@ public class ArayStatsServiceImpl implements ArayStatsService {
         //setting data for NG
         templateText = templateText.concat("<html><body><h1>Aray Service Stats - NG</h1><table style=\"width:100%\">");
         for (String status : s) {
-			templateText = templateText.concat("<tr><td><h4>" + status + "</h4></td><td>" + arayStatsforNG.getMapForApplyStatus().get(status) + "</td></tr>");
+        	if (arayStatsforNG.getMapForApplyStatus().get(status) != null) {
+        		templateText = templateText.concat("<tr><td><h4>" + status + "</h4></td><td>" + arayStatsforNG.getMapForApplyStatus().get(status) + "</td></tr>");
+        	}
 		}
+        templateText = templateText.concat("<tr><td><h4>companiesDoneTillNow</h4></td><td>" + arayStatsforNG.getTotalNumOfCompaniesTillNow() + "</td></tr>");
+        templateText = templateText.concat("<tr><td><h4>companiesDoneToday</h4></td><td>" + arayStatsforNG.getNumOfCompaniesDoneToday() + "</td></tr>");
         templateText = templateText.concat("</table>");
         
         for (String status : top5ErrorsOfAllCategoriesNG.keySet()) {
+        	if (top5ErrorsOfAllCategoriesNG.get(status) == null) {
+        		continue;
+        	}
         	templateText = templateText.concat("<h3> Top " + status + "</h3>");
         	templateText = templateText.concat("<table style=\"width:100%\"><tr><td>CompanyId</td><td>count</td><td>Step</td></tr>");
         	for (ErrorData errorData : top5ErrorsOfAllCategoriesNG.get(status)) {

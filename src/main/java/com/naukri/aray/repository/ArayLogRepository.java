@@ -13,6 +13,7 @@ import java.util.Set;
 
 import org.springframework.stereotype.Component;
 
+import com.naukri.aray.model.CompanyStats;
 import com.naukri.aray.model.ErrorData;
 
 @Component
@@ -20,7 +21,7 @@ public class ArayLogRepository {
 
 	public Map<String, Integer> findReasonandCountMap(Connection conn, String countryType, String createdAt) throws SQLException {
 		Map<String, Integer> map = new LinkedHashMap<>(); 
-		String sql = "select reason, count(distinct applyId) as cnt from ARAY_LOG where  date(createdAt) = ? and countryType = ? group by reason with rollup Order by cnt desc";
+		String sql = "select * from (select reason, count(distinct applyId) as cnt from ARAY_LOG where  date(createdAt) = ? and countryType = ? group by reason with rollup) as a Order by cnt desc";
 		//String sql = "select reason, count(distinct applyId) as cnt from ARAY_LOG where date(createdAt) = ? group by reason with rollup";
 		PreparedStatement ps = conn.prepareStatement(sql);
 		ps.setString(1, createdAt);
@@ -62,6 +63,47 @@ public class ArayLogRepository {
 			errorsData.put(error, list);
 		}
 		return errorsData;
+	}
+	
+	public List<CompanyStats> fetchCompanyStats(String date, String companyId, Connection conn) throws SQLException {
+		List<CompanyStats> companyStatList = new ArrayList<>();
+		
+		String sql = "SELECT companyId, jobUrl, reason, applyJson, failedStep, count(distinct applyId) as cnt from ARAY_LOG a where date(a.createdAt) = ? and companyId = ? group by failedStep Order by cnt desc";
+		PreparedStatement ps = conn.prepareStatement(sql);
+		ps.setString(1,  date);
+		ps.setString(2,  companyId);
+		ResultSet rs = ps.executeQuery();
+		
+		while (rs.next()) {
+			CompanyStats companyStats = new CompanyStats();
+			companyStats.setCompanyId(rs.getString("companyId"));
+			companyStats.setApplyJson(rs.getString("applyJson"));
+			companyStats.setFailedStep(rs.getString("failedStep"));
+			companyStats.setCount(rs.getInt("cnt"));
+			companyStats.setReason(rs.getString("reason"));
+			companyStatList.add(companyStats);
+		}
+		return companyStatList;
+	}
+	
+	public List<CompanyStats> getStepFailedAtVerifyStep(String date, String companyId, Connection conn) throws SQLException {
+		List<CompanyStats> companyStatList = new ArrayList<>();
+		
+		String sql = "SELECT companyId, jobUrl, reason, applyJson, failedStep from ARAY_LOG a where date(a.createdAt) = ? and companyId = ? and failedStep like \"%verify%\" limit 10";
+		PreparedStatement ps = conn.prepareStatement(sql);
+		ps.setString(1,  date);
+		ps.setString(2,  companyId);
+		ResultSet rs = ps.executeQuery();
+		
+		while (rs.next()) {
+			CompanyStats companyStats = new CompanyStats();
+			companyStats.setCompanyId(rs.getString("companyId"));
+			companyStats.setApplyJson(rs.getString("applyJson"));
+			companyStats.setFailedStep(rs.getString("failedStep"));
+			companyStats.setReason(rs.getString("reason"));
+			companyStatList.add(companyStats);
+		}
+		return companyStatList;
 	}
 	
 //	@Query(value = "SELECT companyId, count(distinct applyId) as failureCount, failedStep from ARAY_LOG a where a.status = (:status) and date(a.createdAt) = (:createdAt) and reason = :reason and countryType = 'ng' group by companyId order by failureCount desc LIMIT 5", nativeQuery = true)

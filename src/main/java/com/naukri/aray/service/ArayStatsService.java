@@ -1,5 +1,6 @@
 package com.naukri.aray.service;
 
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.text.ParseException;
 import java.util.List;
@@ -14,4 +15,5 @@ public interface ArayStatsService {
 	public List<ArayStatistic> getStats();
 	public void sendEmail(String date) throws ParseException, ClassNotFoundException, SQLException;
 	public void insert(String date) throws ParseException, ClassNotFoundException, SQLException;
+	public Connection getDatabaseConnectionARAY() throws ClassNotFoundException, SQLException;
 }
