@@ -6,6 +6,7 @@ import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -13,10 +14,20 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestTemplate;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.naukri.aray.constants.Constants;
 import com.naukri.aray.email.Email;
 import com.naukri.aray.email.EmailService;
@@ -26,6 +37,7 @@ import com.naukri.aray.model.ErrorData;
 import com.naukri.aray.oms.repository.ApplyStatusRepository;
 import com.naukri.aray.repository.ArayLogRepository;
 import com.naukri.aray.repository.ArayStatisticRepository;
+import com.naukri.aray.responses.model.ApplyOnEmailStats;
 import com.naukri.aray.service.ArayStatsService;
 
 @Component
@@ -73,7 +85,6 @@ public class ArayStatsServiceImpl implements ArayStatsService {
 	}
 	
 	private List<ArayStatistic> fetchArayStats(String date) throws ParseException, ClassNotFoundException, SQLException {
-
 		Connection conn = getDatabaseConnectionWebJobs();
 		
 		// NI - oms
@@ -93,6 +104,12 @@ public class ArayStatsServiceImpl implements ArayStatsService {
 		Map<String, Integer> mapForNI = arayLogRepository.findReasonandCountMap(conn1, Constants.NI, date);
 		Map<String, Integer> mapForNG = arayLogRepository.findReasonandCountMap(conn1, Constants.NG, date);
 		conn1.close();
+		
+		//set applyOnEmail stats
+		int numOfApplyOnEmailHits = fetchApplyOnEmailData(date);
+		mapForNI.put("Success", mapForNI.get("Success") + numOfApplyOnEmailHits);
+		mapForNI.put("totalUniqueHits", mapForNI.get("totalUniqueHits") + numOfApplyOnEmailHits);
+		mapForNI.put("ApplyOnEmail", numOfApplyOnEmailHits);
 		
 		ArayStatistic arayStatsforNI = new ArayStatistic();
 		arayStatsforNI.setCountryType(Constants.NI);
@@ -206,5 +223,40 @@ public class ArayStatsServiceImpl implements ArayStatsService {
 		Connection conn = DriverManager.getConnection("jdbc:mysql://172.10.24.101:3307/webjobs", "arayuser", "@pp1yus3r");
 		//Connection conn = DriverManager.getConnection("jdbc:mysql://127.0.0.1:3306/ARAY", "root", "Km7Iv80l");
 		return conn;
+	}
+	
+	public int fetchApplyOnEmailData(String date) throws ParseException {
+		SimpleDateFormat dateFormatt = new SimpleDateFormat("yyyy-MM-dd");
+		Date startTime = dateFormatt.parse(date);
+		
+		Calendar c = Calendar.getInstance();
+    	c.setTime(startTime);
+    	c.add(Calendar.DATE, 1);  // number of days to add
+    	Date endTime  = c.getTime();
+		
+		
+		RestTemplate restTemplate = new RestTemplate();
+		String url = "http://172.10.113.97:9203/all/_search";
+		
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.APPLICATION_JSON);
+		
+		String data = "{\"query\": {\"filtered\": {\"query\": {\"query_string\": {\"query\": \"uniqueFlowName__:\\\"107_aiApplyTracking\\\" AND _exists_:\\\"ai_jobpost_type\\\" AND ai_comm_type:offline AND ai_jobpost_type:crawled\",\"analyze_wildcard\": true}},\"filter\": {\"bool\": {\"must\": [{\"range\": {\"date_DATE_\": {\"gte\": ";
+		data = data.concat(String.valueOf(startTime.getTime()));
+		data = data.concat(",\"lte\":");
+		data = data.concat(String.valueOf(endTime.getTime()));
+		data = data.concat(",\"format\": \"epoch_millis\"}}}],\"must_not\": []}}}},\"size\": 0,\"aggs\": {}}");
+		
+		Object obj = JSONObject.stringToValue(data);
+		
+		HttpEntity<Object> request = new HttpEntity<>(obj, headers);
+		ResponseEntity<ApplyOnEmailStats> response = restTemplate.postForEntity(url, request, ApplyOnEmailStats.class);
+		if (response != null) {
+			ApplyOnEmailStats objj = response.getBody();
+			HashMap<String, Integer> hits = (HashMap<String, Integer>) objj.getHits();
+			return hits.get("total");
+		} else {
+			return 0;
+		}
 	}
 }
