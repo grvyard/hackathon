@@ -79,6 +79,7 @@ public class ScheduledTasks {
 		//Connection conn1 = DriverManager.getConnection("jdbc:mysql://127.0.0.1:3306/webjobs", "root", "root");
 
 		applyStatusRepository.updateNumOfApplies(conn1, applies);
+		
 		System.out.println( "Executed");
 		
 		
