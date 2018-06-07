@@ -10,6 +10,7 @@ public class ArayStatistic {
 	private Integer totalNumOfCompaniesTillNow;
 	private String countryType;
 	private Map<String, Integer> mapForApplyStatus;
+	private Integer ApplyOnEmail;
 	public Integer getId() {
 		return id;
 	}
@@ -46,6 +47,13 @@ public class ArayStatistic {
 	public void setMapForApplyStatus(Map<String, Integer> mapForApplyStatus) {
 		this.mapForApplyStatus = mapForApplyStatus;
 	}
+	public Integer getApplyOnEmail() {
+		return ApplyOnEmail;
+	}
+	public void setApplyOnEmail(Integer applyOnEmail) {
+		ApplyOnEmail = applyOnEmail;
+	}
+	
 	
 	
 	

@@ -107,9 +107,9 @@ public class ArayStatsServiceImpl implements ArayStatsService {
 		
 		//set applyOnEmail stats
 		int numOfApplyOnEmailHits = fetchApplyOnEmailData(date);
-		mapForNI.put("Success", mapForNI.get("Success") + numOfApplyOnEmailHits);
-		mapForNI.put("totalUniqueHits", mapForNI.get("totalUniqueHits") + numOfApplyOnEmailHits);
-		mapForNI.put("ApplyOnEmail", numOfApplyOnEmailHits);
+		//mapForNI.put("Success", mapForNI.get("Success") + numOfApplyOnEmailHits);
+		//mapForNI.put("totalUniqueHits", mapForNI.get("totalUniqueHits") + numOfApplyOnEmailHits);
+		//mapForNI.put("ApplyOnEmail", numOfApplyOnEmailHits);
 		
 		ArayStatistic arayStatsforNI = new ArayStatistic();
 		arayStatsforNI.setCountryType(Constants.NI);
@@ -117,6 +117,7 @@ public class ArayStatsServiceImpl implements ArayStatsService {
 		arayStatsforNI.setMapForApplyStatus(mapForNI);
 		arayStatsforNI.setNumOfCompaniesDoneToday(companiesDoneTodayNI);
 		arayStatsforNI.setTotalNumOfCompaniesTillNow(companiesDoneTillNowNI);
+		arayStatsforNI.setApplyOnEmail(numOfApplyOnEmailHits);
 		
 		ArayStatistic arayStatsforNG = new ArayStatistic();
 		arayStatsforNG.setCountryType(Constants.NG);
@@ -158,17 +159,35 @@ public class ArayStatsServiceImpl implements ArayStatsService {
         
         //email template
         EmailTemplate template = new EmailTemplate("hello-world.html");
-        
-        //setting data for NI
-        String templateText = "<html><body><h1>Aray Service Stats - NI</h1><table style=\"width:100%\">";
+        String templateText = "<html><body><h1>Aray Service Stats - NI</h1><table style=\\\"width:100%\\\">";
+        int totalUniqueHitsNI = arayStatsforNI.getMapForApplyStatus().get("Success") + arayStatsforNI.getApplyOnEmail();
+        int totalSucessHitsNI = arayStatsforNI.getMapForApplyStatus().get("totalUniqueHits") + arayStatsforNI.getApplyOnEmail();
+        templateText =  templateText.concat("<tr><td><h4>totalUniqueHits</h4></td><td>" +totalUniqueHitsNI + "</td></tr>");
+      	templateText = templateText.concat("<tr><td><h4>SucessHits</h4></td><td>" + totalSucessHitsNI + "</td></tr>");
+      	templateText = templateText.concat("<tr><td><h4>FailureHIts</h4></td><td>" + (totalUniqueHitsNI - totalSucessHitsNI ) + "</td></tr>");
+      	templateText = templateText.concat("</table>");
+      	
+        //setting data for NI - Seamless
+        templateText.concat("<h2>Aray Service Stats - NI (Seamless Applies)</h2><table style=\"width:100%\">");
         for (String status : s) {
         	if (arayStatsforNI.getMapForApplyStatus().get(status) != null) {
-        		templateText = templateText.concat("<tr><td><h4>" + status + "</h4></td><td>" + arayStatsforNI.getMapForApplyStatus().get(status) + "</td></tr>");
+        		if (status.equals("StepFailed")) {
+        			int failedStepCount = arayStatsforNI.getMapForApplyStatus().get("totalUniqueHits") - arayStatsforNI.getMapForApplyStatus().get("Success") - arayStatsforNI.getMapForApplyStatus().get("JobExpired");
+        			templateText = templateText.concat("<tr><td><h4>" + status + "</h4></td><td>" + failedStepCount + "</td></tr>");
+        		} else {
+        			templateText = templateText.concat("<tr><td><h4>" + status + "</h4></td><td>" + arayStatsforNI.getMapForApplyStatus().get(status) + "</td></tr>");
+        		}
         	}
 		}
         templateText = templateText.concat("<tr><td><h4>companiesDoneTillNow</h4></td><td>" + arayStatsforNI.getTotalNumOfCompaniesTillNow() + "</td></tr>");
         templateText = templateText.concat("<tr><td><h4>companiesDoneToday</h4></td><td>" + arayStatsforNI.getNumOfCompaniesDoneToday() + "</td></tr>");
         templateText = templateText.concat("</table>");
+        
+      //setting Data for NI - ApplyOnEmail
+        templateText = templateText.concat("<h2>Aray Service Stats - NI (ApplyOnEmail Applies)</h3><table style=\"width:100%\">");
+        templateText = templateText.concat("<tr><td><h4>" + "Apply On Email" + "</h4></td><td>" + arayStatsforNI.getApplyOnEmail() + "</td></tr>");
+        templateText = templateText.concat("</table>");
+        
         
         for (String status : top5ErrorsOfAllCategoriesNI.keySet()) {
         	if (top5ErrorsOfAllCategoriesNI.get(status) == null) {
