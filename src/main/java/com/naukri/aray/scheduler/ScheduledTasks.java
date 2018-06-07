@@ -1,5 +1,7 @@
 package com.naukri.aray.scheduler;
 
+import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -17,6 +19,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import com.naukri.aray.apply.repository.ApplyLogRepository;
 import com.naukri.aray.constants.Constants;
 import com.naukri.aray.email.Email;
 import com.naukri.aray.email.EmailService;
@@ -38,6 +41,12 @@ public class ScheduledTasks {
 	@Autowired
 	EmailService emailService;
 
+	@Autowired
+	private ApplyLogRepository applyLogRepository;
+	
+	@Autowired
+	private ApplyStatusRepository applyStatusRepository;
+	
     private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 
     @Scheduled(cron = "0 0 11 * * *")
@@ -55,6 +64,25 @@ public class ScheduledTasks {
     	
         //data fetching from oms-apply status
     	
+    }
+    
+    @Scheduled(cron = "0 0 8 * * *")
+    public void updateNumOfAppliesInOms() throws ClassNotFoundException, SQLException{
+    	System.out.println("start");
+    	Class.forName("com.mysql.cj.jdbc.Driver");
+		Connection conn =DriverManager.getConnection("jdbc:mysql://172.10.114.170:3306/mynaukri", "aray", "ar@y|2E");
+		//Connection conn = DriverManager.getConnection("jdbc:mysql://127.0.0.1:3306/mynaukri", "root", "root");
+
+		HashMap<String, String> applies = applyLogRepository.getnumOfApplies(conn);
+		System.out.println(applies);
+		Connection conn1 = DriverManager.getConnection("jdbc:mysql://172.10.24.101:3307/webjobs", "arayuser", "@pp1yus3r");
+		//Connection conn1 = DriverManager.getConnection("jdbc:mysql://127.0.0.1:3306/webjobs", "root", "root");
+
+		applyStatusRepository.updateNumOfApplies(conn1, applies);
+		System.out.println( "Executed");
+		
+		
+		
     }
 }
 
