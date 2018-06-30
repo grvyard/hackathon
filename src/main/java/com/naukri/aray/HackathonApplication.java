@@ -12,9 +12,9 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @SpringBootApplication
 @EnableScheduling
 @ComponentScan(basePackages = {"com.naukri.aray.*"})
-public class CronsApplication {
+public class HackathonApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(CronsApplication.class, args);
+		SpringApplication.run(HackathonApplication.class, args);
 	}
 }

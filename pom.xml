@@ -4,12 +4,12 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>com.naukri</groupId>
-	<artifactId>crons</artifactId>
+	<artifactId>hackathon</artifactId>
 	<version>0.0.1</version>
 	<packaging>jar</packaging>
 
-	<name>crons</name>
-	<description>crons removal</description>
+	<name>hackathon</name>
+	<description>hackathon project</description>
 
 	<parent>
 		<groupId>org.springframework.boot</groupId>
